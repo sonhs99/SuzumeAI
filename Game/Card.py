@@ -2,14 +2,14 @@ from collections import namedtuple
 from unicodedata import name
 NUM_OF_SET = 4
 NUM_OF_TYPE = 11
-NUM_OF_CARD = NUM_OF_SET * NUM_OF_SET
+NUM_OF_CARD = NUM_OF_SET * NUM_OF_TYPE
 
-RED = 0
+RED = 9
 GREEN = 10
 
 RED_SET = 3
-GREEN_SET = [2, 3, 4, 6, 8, 10]
-NOBLE_SET = [0, 1, 9, 10]
+GREEN_SET = [1, 2, 3, 5, 7, 10]
+NOBLE_SET = [1, 8, 9, 10]
 
 class CardTable:
 	_table = None

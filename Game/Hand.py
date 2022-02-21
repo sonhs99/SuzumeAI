@@ -13,7 +13,7 @@ class Triple:
 		type = 0
 		if card[0].num + 1 == card[1].num and \
 			card[1].num + 1 == card[2].num:
-			if card[0].num != RED and card[2].num != GREEN:
+			if card[2].num != RED and card[2].num != GREEN:
 				type = 1
 		if card[0].num == card[1].num and \
 			card[1].num == card[2].num:
@@ -58,9 +58,10 @@ class Hand:
 	def change(self, draw, discard):
 		self._hand.append(draw)
 		self._hand.remove(discard)
-		self._hand.sort(key=lambda x: table.get(x).num)
+		# self._hand.sort(key=lambda x: table.get(x).num)
 
-	def getList(self):
+	def toArray(self):
+		self._hand.sort(key=lambda x: table.get(x).num)
 		return self._hand
 
 	def __str__(self):
@@ -73,7 +74,7 @@ class DiscardZone:
 	def collect(self, card):
 		self._discard.append(card)
 
-	def getList(self):
+	def toArray(self):
 		return self._discard
 
 	def __str__(self):
