@@ -47,22 +47,37 @@ class Action:
 		return 'Action(' + string + ')'
 
 class State:
-	def __init__(self, turn, hand, discard):
+	def __init__(self, n_player, turn, hand, discard):
+		self.n_player = n_player
 		self.turn = turn
 		self.hand = hand
 		self.discard = discard
 		self.draw = None
 
 	@staticmethod
-	def init(self, n_players, deck):
+	def init(self, n_player, deck):
 		hand = []
-		discard = [DiscardZone()] * n_players
-		for i in range(n_players):
+		discard = [DiscardZone()] * n_player
+		for i in range(n_player):
 			hand.append(Hand(deck[i*5:(i + 1)*5]))
-		return State(0, hand, discard), deck[n_players*5:]
+		return State(0, n_player, hand, discard), deck[n_player*5:]
 
-	def apply(self, actions):
-		pass
+	def apply(self, draw, actions):
+		self.draw = draw
+		for action in actions:
+			if action.isTsumo() or action.isRon():
+				return None
+
+		from copy import deepcopy
+		hand = deepcopy(self.hand)
+		discard = deepcopy(self.discard)
+		discarded_card = actions[self.turn].Encode()
+		hand[self.turn].change(draw, discarded_card)
+		discard[self.turn].collect(discarded_card)
+		return State(self.n_player, (self.turn + 1) % self.n_player, hand, discard)
 
 	def action(self, turn, card):
-		pass
+		if turn == self.turn:
+			pass
+		else:
+			pass
