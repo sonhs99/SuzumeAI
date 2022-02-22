@@ -1,10 +1,12 @@
 from Game import Board, Experience, Display
 from Game.agents import Random
 
-def render_state(state, actions):
-    print('Turn :', state.turn)
-    print('Draw:', Display.card_to_string(state.draw)+ '\x1b[0m')
+def render_state(turn, state, actions):
+    print('\nTurn:', turn)
+    print('Dora:', Display.card_to_string(state.dora) + '\x1b[0m')
+    draw = Display.card_to_string(state.draw)+ '\x1b[0m'
     for i in range(state.n_player):
+        draws = draw if i == state.turn else ' '
         hand = Display.serise_to_string(state.hand[i].toArray())
         discard = Display.serise_to_string(state.discard[i].toArray())
         discard += ' ' * (6 - len(discard) // 6)
@@ -14,7 +16,7 @@ def render_state(state, actions):
         elif not actions[i].isPass():
             card = Display.card_to_string(actions[i].Encode()) + '\x1b[0m'
             action += f'Discard({card})'
-        print('[%d] %s : %s : %s' % (i + 1, hand, discard, action))
+        print(f'[{i + 1}] {hand} {draws} : {discard} : {action}')
 
 print('=== Game Test ===')
 
@@ -25,11 +27,6 @@ players = [
 board = Board.Board(players, buffer)
 board.play()
 
-print('Lenght:', buffer.len())
-print()
-exp = buffer.get(0)
-render_state(exp[0], exp[1])
-
-print()
-exp = buffer.get(-1)
-render_state(exp[0], exp[1])
+for i in range(buffer.len()):
+    exp = buffer.get(i)
+    render_state(i, exp[0], exp[1])

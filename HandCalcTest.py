@@ -14,11 +14,13 @@ print('Hand :',
 
 print('\n=== Hand1 Calculation Test ===')
 draw = 6
+dora = 6
 print('Draw Card idx :', draw)
+print('Dora  :', dora)
 print('Hand :',
     Display.serise_to_string(hand1.toArray())
     + Display.card_to_string(draw) + '\x1b[0m')
-print('Score :', hand1.point(draw))
+print('Score :', hand1.point(draw, dora))
 
 print('\n=== Hand2 Calculation Test ===')
 draw = 12
@@ -26,4 +28,4 @@ print('Draw Card idx :', draw)
 print('Hand :',
     Display.serise_to_string(hand2.toArray())
     + Display.card_to_string(draw) + '\x1b[0m')
-print('Score :', hand2.point(draw))
+print('Score :', hand2.point(draw, dora))
