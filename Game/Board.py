@@ -112,24 +112,24 @@ class State:
 class Board:
 	def __init__(self, players, collector=None):
 		deck = list(range(NUM_OF_CARD))
-		deck = random.shuffle(deck)
+		random.shuffle(deck)
 		self.players = players
 		self.state, self.deck = State.init(len(players), deck)
 		self.collector = collector
 
 	def play(self):
-		n_player = len(self.palyers)
+		n_player = len(self.players)
 		for draw in self.deck:
 			if self.state is None: break
 			turn = self.state.getTurn()
-			actions = [Action.Pass()] * n_player
+			actions = [Action.Pass() for i in range(n_player)]
 			actions[turn] = self.players[turn].select_action(self.state, draw, turn)
 
 			if not actions[turn].isTsumo():
 				discard = actions[turn].Encode()
 				for ron_turn in range(turn + 1, turn + 4):
 					ron_turn %= n_player
-					actions[ron_turn] = self.players[ron_turn].select_action(self.state, discard, turn)
+					actions[ron_turn] = self.players[ron_turn].select_action(self.state, discard, ron_turn)
 
 			if self.collector is not None:
 				self.collector.collect(self.state, actions, None)
