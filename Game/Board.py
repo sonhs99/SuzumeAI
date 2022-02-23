@@ -90,6 +90,7 @@ class State:
         if turn == self.turn:
             for c in self.hand[turn].toArray():
                 actions.append(Action.Discard(c))
+            actions.append(Action.Discard(card))
             if self.hand[turn].point(card, self.dora) >= 5:
                 actions.append(Action.Tsumo())
         else:
