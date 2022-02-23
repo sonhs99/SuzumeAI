@@ -26,3 +26,6 @@ class CardTable:
 
     def get(self, index):
         return CardTable._table[index]
+
+    def getid(self, num):
+        return [(NUM_OF_SET * num + i) for i in range(NUM_OF_SET)]

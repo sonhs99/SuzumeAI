@@ -57,20 +57,20 @@ class State:
         self.draw = None
 
     @staticmethod
-    def init(n_player, deck):
+    def init(n_player, deck, turn):
         hand = []
         discard = [DiscardZone() for i in range(n_player)]
         for i in range(n_player):
             hand.append(Hand(deck[i*5:(i + 1)*5]))
         return (
-            State(n_player, 0, deck[n_player*5], hand, discard),
+            State(n_player, turn, deck[n_player*5], hand, discard),
             deck[n_player*5 + 1:])
 
     def apply(self, draw, actions):
         self.draw = draw
         for action in actions:
             if action.isTsumo() or action.isRon():
-                return None
+                return self
 
         from copy import deepcopy
         hand = deepcopy(self.hand)
@@ -93,7 +93,8 @@ class State:
             if self.hand[turn].point(card, self.dora) >= 5:
                 actions.append(Action.Tsumo())
         else:
-            if self.hand[turn].point(card, self.dora) >= 5:
+            if self.hand[turn].point(card, self.dora) >= 5 and \
+                not self.discard[turn].isDiscarded(card):
                 actions.append(Action.Ron())
             else: actions.append(Action.Pass())
         return actions
@@ -119,19 +120,21 @@ class State:
         return string
 
 class Board:
-    def __init__(self, players, collector=None):
+    def __init__(self, players, collector=None, start_turn=0):
         deck = list(range(NUM_OF_CARD))
         random.shuffle(deck)
         self.players = players
-        self.state, self.deck = State.init(len(players), deck)
+        self.state, self.deck = State.init(len(players), deck, start_turn)
         self.collector = collector
+        self.result = [0] * len(players)
+        self.start_turn = start_turn
 
     def play(self):
         n_player = len(self.players)
+        winner = []
         for draw in self.deck:
-            if self.state is None: break
             turn = self.state.getTurn()
-            actions = [Action.Pass() for i in range(n_player)]
+            actions = [Action.Pass() for _ in range(n_player)]
             actions[turn] = self.players[turn].select_action(self.state, draw, turn)
 
             if not actions[turn].isTsumo():
@@ -139,8 +142,30 @@ class Board:
                 for ron_turn in range(turn + 1, turn + 4):
                     ron_turn %= n_player
                     actions[ron_turn] = self.players[ron_turn].select_action(self.state, discard, ron_turn)
+                    if actions[ron_turn].isRon(): winner.append(ron_turn)
+            else: winner.append(turn)
 
             if self.collector is not None:
                 self.collector.collect(self.state, actions, None)
 
-            self.state = self.state.apply(draw, actions)
+            next_state = self.state.apply(draw, actions)
+            if id(next_state) == id(self.state): break
+            self.state = next_state
+        else: return
+
+        for w in winner:
+            if actions[w].isTsumo():
+                card = self.state.draw
+                dora = self.state.dora
+                point = self.state.hand[w].point(card, dora)
+                point += 2 if w == self.start_turn else 0
+                point //= n_player - 1
+                self.result = [-point] * (n_player - 1)
+                self.result[w] = point * (n_player - 1)
+            else:
+                card = actions[turn].Encode()
+                dora = self.state.dora
+                point = self.state.hand[w].point(card, dora)
+                point += 2 if w == self.start_turn else 0
+                self.result[w] += point
+                self.result[turn] -= point

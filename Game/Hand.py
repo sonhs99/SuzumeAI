@@ -19,7 +19,7 @@ class Triple:
             card[1].num == card[2].num:
             type = 2
         if type == 0: return Triple.info(0, 0, 0, False)
-        noble = card[0].noble or card[1].noble
+        noble = card[0].noble or card[2].noble
         red, green = 0, 0
         for c in card:
             if c.red: red += 1
@@ -59,7 +59,6 @@ class Hand:
     def change(self, draw, discard):
         self._hand.append(draw)
         self._hand.remove(discard)
-        # self._hand.sort(key=lambda x: table.get(x).num)
 
     def toArray(self):
         self._hand.sort(key=lambda x: table.get(x).num)
@@ -74,6 +73,12 @@ class DiscardZone:
 
     def collect(self, card):
         self._discard.append(card)
+
+    def isDiscarded(self, card):
+        cards = table.getid(table.get(card).num)
+        for c in cards:
+            if c in self._discard: return True
+        return False
 
     def toArray(self):
         return self._discard

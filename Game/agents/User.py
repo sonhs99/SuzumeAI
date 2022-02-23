@@ -4,7 +4,7 @@ class UserAgent:
     def __init__(self):
         pass
 
-    def render(self, state):
+    def render(self, state, turn):
         pass
 
     def render_action(self, actions):
@@ -15,7 +15,7 @@ class UserAgent:
 
     def select_action(self, state, card, turn):
         actions = state.action(turn, card)
-        self.render(state)
+        self.render(state, turn)
         self.render_action(actions)
         return actions[self.selector()]
         
