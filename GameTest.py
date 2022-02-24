@@ -31,4 +31,4 @@ for i in range(buffer.len()):
     exp = buffer.get(i)
     render_state(i, exp[0], exp[1])
 
-print('\nResult :', board.result)
+print('\nResult :', buffer.get(0)[2])

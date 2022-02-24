@@ -127,11 +127,11 @@ class Board:
         self.players = players
         self.state, self.deck = State.init(len(players), deck, start_turn)
         self.collector = collector
-        self.result = [0] * len(players)
         self.start_turn = start_turn
 
     def play(self):
         n_player = len(self.players)
+        result = [0] * n_player
         winner = []
         for draw in self.deck:
             turn = self.state.getTurn()
@@ -147,12 +147,11 @@ class Board:
             else: winner.append(turn)
 
             if self.collector is not None:
-                self.collector.collect(self.state, actions, None)
+                self.collector.collect(self.state, actions)
 
             next_state = self.state.apply(draw, actions)
             if id(next_state) == id(self.state): break
             self.state = next_state
-        else: return
 
         for w in winner:
             if actions[w].isTsumo():
@@ -161,12 +160,15 @@ class Board:
                 point = self.state.hand[w].point(card, dora)
                 point += 2 if w == self.start_turn else 0
                 point //= n_player - 1
-                self.result = [-point] * (n_player - 1)
-                self.result[w] = point * (n_player - 1)
+                result = [-point] * n_player
+                result[w] = point * (n_player - 1)
             else:
                 card = actions[turn].Encode()
                 dora = self.state.dora
                 point = self.state.hand[w].point(card, dora)
                 point += 2 if w == self.start_turn else 0
-                self.result[w] += point
-                self.result[turn] -= point
+                result[w] += point
+                result[turn] -= point
+
+        if self.collector is not None:
+            self.collector.end(result)
