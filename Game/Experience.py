@@ -46,11 +46,10 @@ class ExperienceBuffer:
             states[idx, state.dora] = 1
             states[idx, state.draw] = 2
             for i in range(n_player[idx]):
-                for card in state.hand[i].toArray():
-                    states[idx, card] = i + 3
-                for card in state.discard[i].toArray():
-                    states[idx, card] = i + n_player[idx] + 3
+                states[idx] += (state.hand[i]._hand == 1).astype('int') * (i + 3)
+                states[idx] += (state.hand[i]._hand == 2).astype('int') * (i + 3 + n_player[idx])
                 actions[idx, i] = self.action[idx][i].Encode()
+                
         file.create_dataset('State', data=states)
         file.create_dataset('Action', data=actions)
         file.create_dataset('Reward', data=np.array(self.reward))

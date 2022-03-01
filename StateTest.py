@@ -6,7 +6,7 @@ print('=== State initialize Test ===')
 deck = list(range(NUM_OF_CARD))
 random.shuffle(deck)
 players = 4
-state, deck = State.init(players, deck)
+state, deck = State.init(players, deck, 0)
 print(state)
 
 print('=== Available Action Test ===')

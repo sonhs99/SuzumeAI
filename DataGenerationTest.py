@@ -4,7 +4,7 @@ from Game.agents import Random
 from tqdm import trange
 import h5py
 
-iteration = 10000
+iteration = 100
 
 print(f'=== Generate {iteration} Data Test ===')
 
