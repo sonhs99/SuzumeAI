@@ -2,3 +2,5 @@
 *__pycache__
 *.txt
 *.h5
+
+!requirements.txt
