@@ -1,12 +1,12 @@
-from . import Score
-from .Card import NUM_OF_CARD, CardTable
+from . import Score, Type
+from .Card import CardTable
 import numpy as np
 
 table = CardTable()
 
 class Hand:
     def __init__(self, hand):
-        self._hand = np.zeros(NUM_OF_CARD, dtype='int')
+        self._hand = np.zeros(Type.NUM_OF_CARD, dtype='int')
         for card in hand:
             self._hand[card] = 1
 
@@ -42,6 +42,16 @@ class Hand:
     def toArray(self):
         return np.arange(44)[self._hand == 1]
 
+    def getArray(self):
+        return self._hand
+
+    def isDiscarded(self, card):
+        cards = table.getid(table.get(card).num)
+        for c in cards:
+            if self._hand[c] == 2:
+                True
+        return False
+
     def __str__(self):
         return f'Hand({self.toArray()})'
 
@@ -52,14 +62,8 @@ class DiscardZone:
     def collect(self, card):
         self._discard.append(card)
 
-    def isDiscarded(self, card):
-        cards = table.getid(table.get(card).num)
-        for c in cards:
-            if c in self._discard: return True
-        return False
-
     def toArray(self):
         return self._discard
 
     def __str__(self):
-        return f'Hand({self._discard})'
+        return f'DiscardZone({self._discard})'

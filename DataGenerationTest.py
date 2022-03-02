@@ -8,21 +8,21 @@ iteration = 100
 
 print(f'=== Generate {iteration} Data Test ===')
 
-buffer = Experience.ExperienceBuffer()
+collector = Experience.ExperienceCollector()
 players = [
     Random.RandomAgent() for i in range(4)
 ]
 for _ in trange(iteration):
-    board = Board.Board(players, buffer)
+    board = Board.Board(players, collector)
     board.play()
-buffer.save('test.h5')
+buffer = Experience.combine_experience([collector])
+buffer.serialize('test.h5')
 
 file = h5py.File('test.h5')
 
-sample = random.randint(0, file['State'].shape[0])
+sample = random.randint(0, file['experience']['State'].shape[0])
 print('sample:', sample)
-print('size:', file['State'].shape)
-print('state:', file['State'][sample])
-print('action:', file['Action'][sample])
-print('reward:', file['Reward'][sample])
-print('player:', file['n_player'][sample])
+print('size:', file['experience']['State'].shape)
+print('state:', file['experience']['State'][sample])
+print('action:', file['experience']['Action'][sample])
+print('reward:', file['experience']['Reward'][sample])

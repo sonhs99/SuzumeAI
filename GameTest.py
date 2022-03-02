@@ -1,11 +1,11 @@
-from Game import Board, Experience, Display
+from Game import Board, Experience, Display, Type
 from Game.agents import Random
 
 def render_state(turn, state, actions):
     print('\nTurn:', turn)
     print('Dora:', Display.card_to_string(state.dora) + '\x1b[0m')
     draw = Display.card_to_string(state.draw)+ '\x1b[0m'
-    for i in range(state.n_player):
+    for i in range(Type.N_PLAYER):
         draws = draw if i == state.turn else ' '
         hand = Display.serise_to_string(state.hand[i].toArray())
         discard = Display.serise_to_string(state.discard[i].toArray())
@@ -20,7 +20,7 @@ def render_state(turn, state, actions):
 
 print('=== Game Test ===')
 
-buffer = Experience.ExperienceBuffer()
+buffer = Experience.ExperienceCollector()
 players = [
     Random.RandomAgent() for i in range(4)
 ]

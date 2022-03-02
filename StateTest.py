@@ -1,12 +1,11 @@
 from Game.Board import State, Action
-from Game.Card import NUM_OF_CARD
+from Game.Type import NUM_OF_CARD, N_PLAYER
 import random
 
 print('=== State initialize Test ===')
 deck = list(range(NUM_OF_CARD))
 random.shuffle(deck)
-players = 4
-state, deck = State.init(players, deck, 0)
+state, deck = State.init(deck, 0)
 print(state)
 
 print('=== Available Action Test ===')
@@ -26,7 +25,7 @@ for a in action2:
 print(']')
 
 print('=== State Apply Test ===')
-apply_action = [Action.Pass()] * players
+apply_action = [Action.Pass()] * N_PLAYER
 apply_action[state.getTurn()] = action[0]
 state = state.apply(draw, apply_action)
 print(state)

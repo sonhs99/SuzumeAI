@@ -1,6 +1,8 @@
-from .Card import CardTable, NUM_OF_CARD
+from .Card import CardTable
 from .Hand import Hand, DiscardZone
+from . import Type
 import random
+import numpy as np
 
 table = CardTable()
 
@@ -48,8 +50,7 @@ class Action:
         return 'Action(' + string + ')'
 
 class State:
-    def __init__(self, n_player, turn, dora, hand, discard):
-        self.n_player = n_player
+    def __init__(self, turn, dora, hand, discard):
         self.turn = turn
         self.dora = dora
         self.hand = hand
@@ -57,14 +58,12 @@ class State:
         self.draw = None
 
     @staticmethod
-    def init(n_player, deck, turn):
-        hand = []
-        discard = [DiscardZone() for i in range(n_player)]
-        for i in range(n_player):
-            hand.append(Hand(deck[i*5:(i + 1)*5]))
+    def init(deck, turn):
+        hand = [Hand(deck[i*5:(i + 1)*5]) for i in range(Type.N_PLAYER)]
+        discard = [DiscardZone() for _ in range(Type.N_PLAYER)]
         return (
-            State(n_player, turn, deck[n_player*5], hand, discard),
-            deck[n_player*5 + 1:])
+            State(turn, deck[Type.N_PLAYER*5], hand, discard),
+            deck[Type.N_PLAYER*5 + 1:])
 
     def apply(self, draw, actions):
         self.draw = draw
@@ -79,8 +78,7 @@ class State:
         hand[self.turn].change(draw, discarded_card)
         discard[self.turn].collect(discarded_card)
         return State(
-            self.n_player,
-            (self.turn + 1) % self.n_player,
+            (self.turn + 1) % Type.N_PLAYER,
             self.dora,
             hand, 
             discard)
@@ -95,17 +93,34 @@ class State:
                 actions.append(Action.Tsumo())
         else:
             if self.hand[turn].point(card, self.dora) >= 5 and \
-                not self.discard[turn].isDiscarded(card):
+                not self.hand[turn].isDiscarded(card):
                 actions.append(Action.Ron())
             else: actions.append(Action.Pass())
         return actions
 
     def getTurn(self):
         return self.turn
+        
+    # Index of State Array
+    # 0 : Deck
+    # 1 : Dora
+    # 2 : Draw
+    # 3 ~ N + 2 : Hand
+    # N + 3 ~ 2N + 2 : Discard
+
+    def toArray(self):
+        state = np.zeros(Type.NUM_OF_CARD, dtype=int)
+
+        state[self.dora] = 1
+        state[self.draw] = 2
+        for i in range(Type.N_PLAYER):
+            state += (self.hand[i]._hand == 1).astype('int') * (i + 3)
+            state += (self.hand[i]._hand == 2).astype('int') * (i + 3 + Type.N_PLAYER)
+
+        return state
 
     def __str__(self):
-        string = 'State(\n\tn_players: ' + str(self.n_player) + \
-                '\n\tturn: ' + str(self.turn) + \
+        string = 'State(\n\tturn: ' + str(self.turn) + \
                 '\n\tdora: ' + str(self.dora)
 
         string += '\n\thand: ['
@@ -122,32 +137,32 @@ class State:
 
 class Board:
     def __init__(self, players, collector=None, start_turn=0):
-        deck = list(range(NUM_OF_CARD))
+        deck = list(range(Type.NUM_OF_CARD))
         random.shuffle(deck)
         self.players = players
-        self.state, self.deck = State.init(len(players), deck, start_turn)
+        self.state, self.deck = State.init(deck, start_turn)
         self.collector = collector
         self.start_turn = start_turn
 
     def play(self):
-        n_player = len(self.players)
-        result = [0] * n_player
+        Type.N_PLAYER = len(self.players)
+        result = [0] * Type.N_PLAYER
         winner = []
         for draw in self.deck:
             turn = self.state.getTurn()
-            actions = [Action.Pass() for _ in range(n_player)]
+            actions = [Action.Pass() for _ in range(Type.N_PLAYER)]
             actions[turn] = self.players[turn].select_action(self.state, draw, turn)
 
             if not actions[turn].isTsumo():
                 discard = actions[turn].Encode()
                 for ron_turn in range(turn + 1, turn + 4):
-                    ron_turn %= n_player
+                    ron_turn %= Type.N_PLAYER
                     actions[ron_turn] = self.players[ron_turn].select_action(self.state, discard, ron_turn)
                     if actions[ron_turn].isRon(): winner.append(ron_turn)
             else: winner.append(turn)
 
             if self.collector is not None:
-                self.collector.collect(self.state, actions)
+                self.collector.record_episode(self.state, actions)
 
             next_state = self.state.apply(draw, actions)
             if id(next_state) == id(self.state): break
@@ -159,9 +174,9 @@ class Board:
                 dora = self.state.dora
                 point = self.state.hand[w].point(card, dora)
                 point += 2 if w == self.start_turn else 0
-                point //= n_player - 1
-                result = [-point] * n_player
-                result[w] = point * (n_player - 1)
+                point //= Type.N_PLAYER - 1
+                result = [-point] * Type.N_PLAYER
+                result[w] = point * (Type.N_PLAYER - 1)
             else:
                 card = actions[turn].Encode()
                 dora = self.state.dora
@@ -171,4 +186,4 @@ class Board:
                 result[turn] -= point
 
         if self.collector is not None:
-            self.collector.end(result)
+            self.collector.complete_episode(result)
