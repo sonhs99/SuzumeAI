@@ -3,6 +3,7 @@ from Game.agents import Random
 from tqdm import tqdm
 import argparse
 import ray
+import os
 
 @ray.remote
 def generate_data():
@@ -15,13 +16,13 @@ def generate_data():
     return collector
 
 if __name__ == '__main__':
+    ray.init(num_cpus=os.cpu_count())
+
     parser = argparse.ArgumentParser(description='Data Generator for SuzumeAI')
     parser.add_argument('iter', type=int, help='Iteration Count')
     parser.add_argument('file', help='File Name to Save Data')
-    parser.add_argument('--n-workers', type=int, default=1)
     args = parser.parse_args()
 
-    ray.init(num_cpus=args.n_workers)
     result_ids = [generate_data.remote() for i in range(args.iter)]
     collector = []
     with tqdm(total=args.iter) as pbar:
