@@ -42,9 +42,6 @@ class Hand:
     def toArray(self):
         return np.arange(44)[self._hand == 1]
 
-    def getArray(self):
-        return self._hand
-
     def isDiscarded(self, card):
         cards = table.getid(table.get(card).num)
         for c in cards:

@@ -16,12 +16,12 @@ def generate_data():
     return collector
 
 if __name__ == '__main__':
-    ray.init(num_cpus=os.cpu_count())
-
     parser = argparse.ArgumentParser(description='Data Generator for SuzumeAI')
     parser.add_argument('iter', type=int, help='Iteration Count')
     parser.add_argument('file', help='File Name to Save Data')
     args = parser.parse_args()
+
+    ray.init(num_cpus=os.cpu_count())
 
     result_ids = [generate_data.remote() for i in range(args.iter)]
     collector = []
