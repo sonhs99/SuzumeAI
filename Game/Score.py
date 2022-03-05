@@ -36,14 +36,12 @@ def split(hand):
     index = [0, 1, 2, 3, 4, 5]
     for idx in range(1, 6):
         delta[idx] = table.get(hand[idx]).num - table.get(hand[idx - 1]).num
-    for i in range(3):
+    for i in range(3, 6):
         if (delta[index[:3]] >= 2).any():
             break # Not Ready
-        elif delta[index[:3]].sum() == 2 or delta[:3].sum() == 0:
+        elif delta[index[:3]].sum() == 2 or delta[index[:3]].sum() == 0:
             break # Body Recognized
         else:  # Possibility of Existance of Body
             swap_idx = 1 if delta[index[1]] == 0 else 2
-            index[swap_idx], index[3 + i] = index[3 + i], index[swap_idx]
+            index[swap_idx], index[i] = index[i], index[swap_idx]
     return sorted(index[:3]), sorted(index[3:])
-
-    

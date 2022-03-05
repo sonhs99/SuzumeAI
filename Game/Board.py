@@ -4,6 +4,12 @@ from . import Type
 import random
 import numpy as np
 
+__all__ = [
+    'Action',
+    'State',
+    'Board'
+]
+
 table = CardTable()
 
 class Action:
@@ -143,20 +149,30 @@ class Board:
         self.state, self.deck = State.init(deck, start_turn)
         self.collector = collector
         self.start_turn = start_turn
+        self.point = np.zeros(len(self.players), dtype='int')
+
+    def init(self):
+        deck = list(range(Type.NUM_OF_CARD))
+        random.shuffle(deck)
+        self.state, self.deck = State.init(deck, self.start_turn)
+
+    def prepare(self):
+        self.start_turn = (self.start_turn + 1) % len(self.players) 
+        self.init()
 
     def play(self):
-        Type.N_PLAYER = len(self.players)
-        result = [0] * Type.N_PLAYER
+        n_player = len(self.players)
+        result = np.zeros(n_player, dtype='int')
         winner = []
         for draw in self.deck:
             turn = self.state.getTurn()
-            actions = [Action.Pass() for _ in range(Type.N_PLAYER)]
+            actions = [Action.Pass() for _ in range(n_player)]
             actions[turn] = self.players[turn].select_action(self.state, draw, turn)
 
             if not actions[turn].isTsumo():
                 discard = actions[turn].Encode()
                 for ron_turn in range(turn + 1, turn + 4):
-                    ron_turn %= Type.N_PLAYER
+                    ron_turn %= n_player
                     actions[ron_turn] = self.players[ron_turn].select_action(self.state, discard, ron_turn)
                     if actions[ron_turn].isRon(): winner.append(ron_turn)
             else: winner.append(turn)
@@ -174,9 +190,9 @@ class Board:
                 dora = self.state.dora
                 point = self.state.hand[w].point(card, dora)
                 point += 2 if w == self.start_turn else 0
-                point //= Type.N_PLAYER - 1
-                result = [-point] * Type.N_PLAYER
-                result[w] = point * (Type.N_PLAYER - 1)
+                point //= n_player - 1
+                result = -point * np.ones(n_player, dtype='int')
+                result[w] = point * (n_player - 1)
             else:
                 card = actions[turn].Encode()
                 dora = self.state.dora
@@ -185,5 +201,19 @@ class Board:
                 result[w] += point
                 result[turn] -= point
 
+        for dest, src in zip(self.point, result):
+            dest += src
+
         if self.collector is not None:
-            self.collector.complete_episode(result)
+            self.collector.complete_sub_episode(result)
+
+    def rank(self):
+        ranking = np.array(self.point).argsort()
+        result = np.arange(len(self.players), dtype='float')
+        result -= result.mean()
+        result = np.sign(result) * np.ceil(np.abs(result))
+        result = (10 * result).astype('int')
+        
+        if self.collector is not None:
+            self.collector.complete_episode(result[ranking])
+        

@@ -1,6 +1,10 @@
 from collections import namedtuple
 from . import Type
 
+__all__ = [
+    'CardTable'
+]
+
 RED = 9
 GREEN = 10
 
@@ -21,7 +25,11 @@ class CardTable:
             noble = num in NOBLE_SET
             CardTable._table.append(CardTable.info(num, red, green, noble))
 
-    def get(self, index):
+    @staticmethod
+    def get(index):
+        return CardTable._table[index]
+
+    def __getitem__(self, index):
         return CardTable._table[index]
 
     def getid(self, num):

@@ -1,4 +1,4 @@
-from .. import Board
+from .. import Action
 import random
 import numpy as np
 
@@ -9,10 +9,10 @@ class OpenAgent:
 
     def select_action(self, state, card, turn):
         actions = state.action(turn, card)
-        if Board.Action.Pass() in actions:
-            return Board.Action.Pass()
-        if Board.Action.Ron() in actions:
-            return Board.Action.Ron()
+        if Action.Pass() in actions:
+            return Action.Pass()
+        if Action.Ron() in actions:
+            return Action.Ron()
         return random.choice(state.action(turn, card))
 
     @staticmethod

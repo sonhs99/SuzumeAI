@@ -1,5 +1,4 @@
-from argparse import Action
-from .. import Board
+from .. import Action
 import random
 
 class RandomAgent:
@@ -8,6 +7,6 @@ class RandomAgent:
 
     def select_action(self, state, card, turn):
         actions = state.action(turn, card)
-        if Board.Action.Tsumo() in actions: return Board.Action.Tsumo()
-        if Board.Action.Ron() in actions: return Board.Action.Ron()
+        if Action.Tsumo() in actions: return Action.Tsumo()
+        if Action.Ron() in actions: return Action.Ron()
         return random.choice(state.action(turn, card))

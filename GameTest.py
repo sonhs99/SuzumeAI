@@ -1,7 +1,7 @@
 from Game import Board, Experience, Display, Type
 from Game.agents import Random
 
-def render_state(turn, state, actions):
+def render_state(turn, state, actions, reward):
     print('\nTurn:', turn)
     print('Dora:', Display.card_to_string(state.dora) + '\x1b[0m')
     draw = Display.card_to_string(state.draw)+ '\x1b[0m'
@@ -17,6 +17,7 @@ def render_state(turn, state, actions):
             card = Display.card_to_string(actions[i].Encode()) + '\x1b[0m'
             action += f'Discard({card})'
         print(f'[{i + 1}] {hand} {draws} : {discard} : {action}')
+    print('Point :', reward)
 
 print('=== Game Test ===')
 
@@ -24,11 +25,14 @@ buffer = Experience.ExperienceCollector()
 players = [
     Random.RandomAgent() for i in range(4)
 ]
-board = Board.Board(players, buffer)
-board.play()
+board = Board(players, buffer)
+for _ in range(len(players)):
+    board.play()
+    board.prepare()
+board.rank()
 
 for i in range(buffer.len()):
     exp = buffer.get(i)
-    render_state(i, exp[0], exp[1])
+    render_state(i, exp[0], exp[1], exp[2])
 
-print('\nResult :', buffer.get(0)[2])
+print('\nResult :', buffer.get(45)[2])

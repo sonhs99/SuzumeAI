@@ -1,5 +1,5 @@
-from Game import Board, Experience
-from Game.agents import Random
+import Game
+from Game import agents
 from tqdm import tqdm
 import argparse
 import ray
@@ -7,12 +7,15 @@ import os
 
 @ray.remote
 def generate_data():
-    collector = Experience.ExperienceCollector()
+    collector = Game.ExperienceCollector()
     players = [
-        Random.RandomAgent() for i in range(4)
+        agents.RandomAgent() for i in range(4)
     ]
-    board = Board.Board(players, collector)
-    board.play()
+    board = Game.Board(players, collector)
+    for _ in range(len(players)):
+        board.play()
+        board.prepare()
+    board.rank()
     return collector
 
 if __name__ == '__main__':
@@ -31,5 +34,5 @@ if __name__ == '__main__':
             pbar.update(len(done_id))
             collector.append(ray.get(done_id[0]))
     
-    buffer = Experience.combine_experience(collector)
+    buffer = Game.combine_experience(collector)
     buffer.serialize(args.file)
