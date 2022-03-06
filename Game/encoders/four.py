@@ -4,9 +4,6 @@ import numpy as np
 table = Card.CardTable()
 
 class FourEncoder:
-    def __init__(self):
-        pass
-    
     def encode(self, state, turn):
         onehot = np.zeros((4, Type.N_PLAYER, Type.NUM_OF_CARD))
         dora = 0, 0
@@ -28,3 +25,6 @@ class FourEncoder:
 
     def size(self):
         return (4, Type.N_PLAYER, Type.NUM_OF_CARD)
+
+    def name(self):
+        return 'four'

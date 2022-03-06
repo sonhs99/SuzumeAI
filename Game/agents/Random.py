@@ -9,4 +9,4 @@ class RandomAgent:
         actions = state.action(turn, card)
         if Action.Tsumo() in actions: return Action.Tsumo()
         if Action.Ron() in actions: return Action.Ron()
-        return random.choice(state.action(turn, card))
+        return random.choice(actions)
