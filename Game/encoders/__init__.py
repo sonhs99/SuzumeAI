@@ -1,7 +1,12 @@
 from json import encoder
-from .four import FourEncoder
+from .five import FivePlaneEncoder
+
+encoder_list = [
+    FivePlaneEncoder
+]
 
 def selector(encoder_name):
-    if encoder_name == 'four':
-        return FourEncoder()
+    for encoder in encoder_list:
+        if encoder.name() == encoder_name:
+            return encoder()
     return None

@@ -4,8 +4,8 @@ from .. import Type
 
 class SmallNetwork():
     def tsumo(self, input_dim):
-        input1 = tf.keras.layers.Input(shape=input_dim)
-        input2 = tf.keras.layers.Input(shape=(Type.NUM_OF_CARD + 1))
+        input1 = tf.keras.layers.Input(shape=input_dim, name='input_state')
+        input2 = tf.keras.layers.Input(shape=(Type.NUM_OF_CARD + 1,), name='input_action')
         x1 = tf.keras.layers.Conv2D(16,
                                     kernel_size=(Type.N_PLAYER, 1), 
                                     strides=(Type.N_PLAYER, 1), 
@@ -34,7 +34,9 @@ class SmallNetwork():
         x = tf.keras.layers.Dense(256, activation='relu')(x)
         x = tf.keras.layers.Dense(256, activation='relu')(x)
         output = tf.keras.layers.Dense(1, activation='linear')(x)
-        return tf.keras.Model(inputs=[input1, input2], outputs=output)
+        model = tf.keras.Model(inputs=[input1, input2], outputs=output)
+        model.summary()
+        return model
     
     def ron(self, input_dim):
         None

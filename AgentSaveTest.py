@@ -3,7 +3,7 @@ from Game import agents, encoders, nn
 
 print('=== Agent Save and Load Test ===')
 
-encoder = encoders.FourEncoder()
+encoder = encoders.FivePlaneEncoder()
 network = nn.SmallNetwork()
 agent = agents.OpenAgent(encoder, network)
 

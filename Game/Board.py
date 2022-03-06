@@ -13,9 +13,9 @@ __all__ = [
 table = CardTable()
 
 class Action:
-    _tsumo = 45
-    _ron = 46
-    _pass = 47
+    _tsumo = Type.NUM_OF_CARD
+    _ron = Type.NUM_OF_CARD + 1
+    _pass = Type.NUM_OF_CARD + 2
     def __init__(self, idx):
         self._idx = idx
 
@@ -209,10 +209,9 @@ class Board:
 
     def rank(self):
         ranking = np.array(self.point).argsort()
-        result = np.arange(len(self.players), dtype='float')
-        result -= result.mean()
-        result = np.sign(result) * np.ceil(np.abs(result))
-        result = (10 * result).astype('int')
+        result = np.zeros(len(self.players))
+        result[0] == -10
+        result[-1] == 10
         
         if self.collector is not None:
             self.collector.complete_episode(result[ranking])

@@ -1,7 +1,5 @@
-import enum
 from .. import Action, NUM_OF_CARD
 from .. import encoders, nn
-from tqdm import trange
 import numpy as np
 import h5py
 
@@ -27,12 +25,12 @@ class OpenAgent:
         result = self.nn_tsumo.predict([encoded_state, encoded_action])
         return actions[result.argmax()]
 
-    def train_tsumo(self, X, y, epoch, batch_size):
-        length = len(X)
-        for _ in trange(epoch):
-            idx = np.random.choice(length, batch_size, replace=False)
-            train_X, train_y = X[idx], y[idx]
-            self.nn_tsumo.train_on_batch(train_X, train_y)
+    def train_tsumo(self, X, y):
+        self.nn_tsumo.compile(
+            optimizer='adam',
+            loss='mse'
+        )
+        return self.nn_tsumo.train_on_batch(X, y)
 
     def save(self, file_name):
         tsumo_weights = self.nn_tsumo.get_weights()
