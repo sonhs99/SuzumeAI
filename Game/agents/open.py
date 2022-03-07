@@ -4,10 +4,9 @@ import numpy as np
 import h5py
 
 class OpenAgent:
-    def __init__(self, encoder, network, temperature=0):
+    def __init__(self, encoder, network):
         self.encoder = encoder
         self.network = network
-        self.temperature = temperature
 
         self.nn_tsumo = network.tsumo(encoder.size())
         self.nn_ron = network.ron(encoder.size())
@@ -42,17 +41,15 @@ class OpenAgent:
             for idx, layer in enumerate(tsumo_weights):
                 file['model/tsumo'].create_dataset(f'level {idx}', data=layer)
 
-            file.attrs['temperature'] = self.temperature
             file.attrs['encoder'] = self.encoder.name()
             file.attrs['network'] = self.network.name()
 
     @staticmethod
     def load(filename):
         with h5py.File(filename, 'r') as file:
-            temperature = file.attrs['temperature']
             encoder = encoders.selector(file.attrs['encoder'])
             network = nn.selector(file.attrs['network'])
-            agent = OpenAgent(encoder, network, temperature)
+            agent = OpenAgent(encoder, network)
 
             tsumo_layers = [
                 file['model/tsumo'][f'level {idx}'] for idx in range(file['model/tsumo'].attrs['len'])

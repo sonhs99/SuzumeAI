@@ -59,6 +59,14 @@ class ExperienceBuffer:
             file['experience'].create_dataset('Action', data=self.action)
             file['experience'].create_dataset('Reward', data=self.reward)
 
+    @staticmethod
+    def load(h5file):
+        return ExperienceBuffer(
+            state=h5file['experience']['state'],
+            action=h5file['experience']['action'],
+            reward=h5file['experience']['reward']
+        )
+
 def combine_experience(collectors):
     states = np.concatenate([
         np.array([state.toArray() for state in c.state]) for c in collectors

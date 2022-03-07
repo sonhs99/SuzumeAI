@@ -4,37 +4,28 @@ from .. import Type
 
 class SmallNetwork():
     def tsumo(self, input_dim):
-        input1 = tf.keras.layers.Input(shape=input_dim, name='input_state')
-        input2 = tf.keras.layers.Input(shape=(Type.NUM_OF_CARD + 1,), name='input_action')
+        input_state = tf.keras.layers.Input(shape=input_dim, name='input_state')
+        input_action = tf.keras.layers.Input(shape=(Type.NUM_OF_CARD + 1,), name='input_action')
         x1 = tf.keras.layers.Conv2D(16,
-                                    kernel_size=(Type.N_PLAYER, 1), 
-                                    strides=(Type.N_PLAYER, 1), 
+                                    kernel_size=(Type.N_PLAYER, Type.NUM_OF_SET), 
+                                    strides=(Type.N_PLAYER, Type.NUM_OF_SET),
+                                    padding='valid',
                                     activation='relu'
-                                    )(input1)
+                                    )(input_state)
         x1 = tf.keras.layers.Conv2D(16,
-                                    kernel_size=(1, Type.NUM_OF_SET),
-                                    strides=(1, Type.NUM_OF_SET),
+                                    kernel_size=(1, 3),
+                                    padding='valid',
                                     activation='relu'
                                     )(x1)
-        x2 = tf.keras.layers.Conv2D(16,
-                                    kernel_size=(1, Type.NUM_OF_SET),
-                                    strides=(1, Type.NUM_OF_SET),
-                                    activation='relu'
-                                    )(input1)
-        x2 = tf.keras.layers.Conv2D(16,
-                                    kernel_size=(Type.N_PLAYER, 1),
-                                    strides=(Type.N_PLAYER, 1),
-                                    activation='relu'
-                                    )(x2)
-        x3 = tf.keras.layers.Dense(256, activation='relu')(input2)
-        x3 = tf.keras.layers.Dense(Type.NUM_OF_TYPE, activation='relu')(x3)
-        x3 = tf.keras.layers.Reshape((1, 1, Type.NUM_OF_TYPE))(x3)
-        x = tf.keras.layers.Concatenate()([x1, x2, x3])
+        x2 = tf.keras.layers.Dense(256, activation='relu')(input_action)
+        x2 = tf.keras.layers.Dense(Type.NUM_OF_TYPE - 2, activation='relu')(x2)
+        x2 = tf.keras.layers.Reshape((1, Type.NUM_OF_TYPE - 2, 1))(x2)
+        x = tf.keras.layers.Concatenate()([x1, x2])
         x = tf.keras.layers.Flatten()(x)
         x = tf.keras.layers.Dense(256, activation='relu')(x)
         x = tf.keras.layers.Dense(256, activation='relu')(x)
         output = tf.keras.layers.Dense(1, activation='linear')(x)
-        model = tf.keras.Model(inputs=[input1, input2], outputs=output)
+        model = tf.keras.Model(inputs=[input_state, input_action], outputs=output)
         model.summary()
         return model
     
