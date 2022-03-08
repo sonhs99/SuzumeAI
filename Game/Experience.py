@@ -1,4 +1,3 @@
-from . import Type
 import numpy as np
 import h5py
 
@@ -52,19 +51,18 @@ class ExperienceBuffer:
         self.action = action
         self.reward = reward
 
-    def serialize(self, file_name):
-        with h5py.File(file_name, 'w') as file:
-            file.create_group('experience')
-            file['experience'].create_dataset('State', data=self.state)
-            file['experience'].create_dataset('Action', data=self.action)
-            file['experience'].create_dataset('Reward', data=self.reward)
+    def serialize(self, h5file, group_name):
+        h5file.create_group(group_name)
+        h5file[group_name].create_dataset('State', data=self.state)
+        h5file[group_name].create_dataset('Action', data=self.action)
+        h5file[group_name].create_dataset('Reward', data=self.reward)
 
     @staticmethod
-    def load(h5file):
+    def load(h5file, group_name):
         return ExperienceBuffer(
-            state=h5file['experience']['state'],
-            action=h5file['experience']['action'],
-            reward=h5file['experience']['reward']
+            state=h5file[group_name]['state'],
+            action=h5file[group_name]['action'],
+            reward=h5file[group_name]['reward']
         )
 
 def combine_experience(collectors):

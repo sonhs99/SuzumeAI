@@ -71,16 +71,15 @@ class State:
             State(turn, deck[Type.N_PLAYER*5], hand, discard),
             deck[Type.N_PLAYER*5 + 1:])
 
-    def apply(self, draw, actions):
+    def apply_action(self, draw, tsumo, ron):
         self.draw = draw
-        for action in actions:
-            if action.isTsumo() or action.isRon():
-                return self
+        if tsumo.isTsumo() or Action.Ron() in ron:
+            return self
 
         from copy import deepcopy
         hand = deepcopy(self.hand)
         discard = deepcopy(self.discard)
-        discarded_card = actions[self.turn].Encode()
+        discarded_card = tsumo.Encode()
         hand[self.turn].change(draw, discarded_card)
         discard[self.turn].collect(discarded_card)
         return State(
@@ -89,20 +88,21 @@ class State:
             hand, 
             discard)
 
-    def action(self, turn, card):
+    def legal_tsumo_action(self, card):
         actions = []
-        if turn == self.turn:
-            for c in self.hand[turn].toArray():
-                actions.append(Action.Discard(c))
-            actions.append(Action.Discard(card))
-            if self.hand[turn].point(card, self.dora) >= 5:
-                actions.append(Action.Tsumo())
-        else:
-            if self.hand[turn].point(card, self.dora) >= 5 and \
-                not self.hand[turn].isDiscarded(card):
-                actions.append(Action.Ron())
-            else: actions.append(Action.Pass())
+        for c in self.hand[self.turn].toArray():
+            actions.append(Action.Discard(c))
+        actions.append(Action.Discard(card))
+        if self.hand[self.turn].point(card, self.dora) >= 5:
+            actions.append(Action.Tsumo())
         return actions
+
+    def legal_ron_action(self, turn, card):
+        actions = []
+        if self.hand[turn].point(card, self.dora) >= 5 and \
+            not self.hand[turn].isDiscarded(card):
+            actions.append(Action.Ron())
+        else: actions.append(Action.Pass())
 
     def getTurn(self):
         return self.turn
@@ -166,35 +166,32 @@ class Board:
         winner = []
         for draw in self.deck:
             turn = self.state.getTurn()
-            actions = [Action.Pass() for _ in range(n_player)]
-            actions[turn] = self.players[turn].select_action(self.state, draw, turn)
+            ron = [Action.Pass() for _ in range(n_player - 1)]
+            tsumo = self.players[turn].select_tsumo(self.state, draw)
 
-            if not actions[turn].isTsumo():
-                discard = actions[turn].Encode()
-                for ron_turn in range(turn + 1, turn + 4):
-                    ron_turn %= n_player
-                    actions[ron_turn] = self.players[ron_turn].select_action(self.state, discard, ron_turn)
-                    if actions[ron_turn].isRon(): winner.append(ron_turn)
+            if not tsumo.isTsumo():
+                discard = ron.Encode()
+                for idx in range(3):
+                    ron_turn = (turn + idx) % n_player
+                    ron[ron_turn] = self.players[ron_turn].select_ron(self.state, discard, ron_turn)
+                    if ron[ron_turn].isRon(): winner.append(ron_turn)
             else: winner.append(turn)
 
-            if self.collector is not None:
-                self.collector.record_episode(self.state, actions)
-
-            next_state = self.state.apply(draw, actions)
+            next_state = self.state.apply_action(draw, tsumo, ron)
             if id(next_state) == id(self.state): break
             self.state = next_state
 
-        for w in winner:
-            if actions[w].isTsumo():
-                card = self.state.draw
-                dora = self.state.dora
-                point = self.state.hand[w].point(card, dora)
-                point += 2 if w == self.start_turn else 0
-                point //= n_player - 1
-                result = -point * np.ones(n_player, dtype='int')
-                result[w] = point * (n_player - 1)
-            else:
-                card = actions[turn].Encode()
+        if winner[0] == turn:
+            card = self.state.draw
+            dora = self.state.dora
+            point = self.state.hand[w].point(card, dora)
+            point += 2 if w == self.start_turn else 0
+            point //= n_player - 1
+            result = -point * np.ones(n_player, dtype='int')
+            result[w] = point * (n_player - 1)
+        else:
+            for w in winner:
+                card = tsumo.Encode()
                 dora = self.state.dora
                 point = self.state.hand[w].point(card, dora)
                 point += 2 if w == self.start_turn else 0
