@@ -66,14 +66,14 @@ class ExperienceBuffer:
         )
 
 def combine_experience(collectors):
-    states = np.concatenate([
-        np.array([state.toArray() for state in c.state]) for c in collectors
-    ])
-    actions = np.concatenate([
-        [np.array([action.Encode() for action in actions])
-            for actions in c.action] for c in collectors
-    ])
-    rewards = np.concatenate([np.array(c.reward) for c in collectors])
+    states, actions, rewards = [], [], []
+    for collector in collectors:
+        states += collector.state
+        actions += collector.action
+        rewards += collector.reward
+    states = np.array(states)
+    actions = np.array(actions)
+    rewards = np.array(rewards)
 
     return ExperienceBuffer(
         states,
