@@ -1,4 +1,3 @@
-from json import encoder
 from .five import FivePlaneEncoder
 
 encoder_list = [

@@ -97,7 +97,8 @@ class State:
             actions.append(Action.Tsumo())
         return actions
 
-    def legal_ron_action(self, turn, card):
+    def legal_ron_action(self, idx, card):
+        turn = (idx + self.turn) % len(Type.N_PLAYER)
         if self.hand[turn].point(card, self.dora) >= 5 and \
             not self.hand[turn].isDiscarded(card):
             return True
@@ -113,12 +114,12 @@ class State:
     # 3 ~ N + 2 : Hand
     # N + 3 ~ 2N + 2 : Discard
 
-    def to_array(self, discard=None, turn=None):
+    def to_array(self, discard=None):
         state = np.zeros(Type.NUM_OF_CARD, dtype=int)
 
         state[self.dora] = 1
         state[self.draw] = 2
-        if turn is None: turn = self.turn
+        turn = self.turn
         for i in range(Type.N_PLAYER):
             _turn = (turn + i) % Type.N_PLAYER
             state += (self.hand[_turn]._hand == 1).astype('int') * (_turn + 3)
@@ -163,7 +164,7 @@ class Board:
                 discard = tsumo.Encode()
                 for idx in range(n_player - 1):
                     ron_turn = (turn + idx + 1) % n_player
-                    ron[idx] = self.players[ron_turn].select_ron(self.state, discard, ron_turn)
+                    ron[idx] = self.players[ron_turn].select_ron(self.state, discard, idx)
                     if ron[idx].isRon(): winner.append(ron_turn)
             else: winner.append(turn)
             if winner: break

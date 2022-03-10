@@ -1,20 +1,29 @@
+from .base import Encoder
 from .. import Type, Card
 import numpy as np
 
 table = Card.CardTable()
 
-class FivePlaneEncoder:
-    def encode(self, state, turn):
+class FivePlaneEncoder(Encoder):
+    ## Plane
+    ## 0: Hand
+    ## 1: Discard
+    ## 2: Turn
+    ## 3: Red
+    ## 4: Dora
+    def encode(self, state, idx):
         onehot = np.zeros((Type.N_PLAYER, Type.NUM_OF_CARD, 5))
-        dora = 0, 0
+        dora = 0
         for card, s in enumerate(state):
             if s == 1: dora = card
-            elif s == 2: onehot[turn, card, 0] = 1
+            elif s == 2:
+                if idx == 0: onehot[idx, card, 0] = 1
+                else: onehot[idx, card, 1] = 1
             elif s >= 3:
                 idx = s - 3
-                onehot[idx % 2, card, idx//2] = 1
+                onehot[idx % Type.N_PLAYER, card, idx // Type.N_PLAYER] = 1
 
-        onehot[turn, :, 2].fill(1)
+        onehot[idx, :, 2].fill(1)
         
         dora = table.get(dora).num
         for card in range(Type.NUM_OF_CARD):

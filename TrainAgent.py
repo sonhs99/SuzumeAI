@@ -4,6 +4,8 @@ import argparse
 import h5py
 from tqdm import trange
 
+from Game.Experience import ExperienceBuffer
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Data Preprocessing for SuzumeAI')
     parser.add_argument('train', help='Source Experience Data to Convert')
@@ -12,8 +14,6 @@ if __name__ == '__main__':
     parser.add_argument('--file', help='Pre-trained Agent file')
     args = parser.parse_args()
 
-    batch_size = 64
-
     if args.file is None:
         agent = agents.OpenAgent(
             encoders.FivePlaneEncoder(),
@@ -21,20 +21,9 @@ if __name__ == '__main__':
         )
     else: agent = agents.OpenAgent.load(args.file)
     with h5py.File(args.train) as train:
-        tsumo_state = train['tsumo']['state']
-        tsumo_action = train['tsumo']['action']
-        tsumo_y = train['tsumo']['y']
-
-        for i in range(args.epoch):
-            pbar = trange(0, len(tsumo_state), batch_size)
-            pbar.set_description(f'epoch {i}/{args.epoch}')
-            for idx in pbar:
-                train_state = tsumo_state[idx:idx + batch_size]
-                train_action = tsumo_action[idx:idx + batch_size]
-                train_y = tsumo_y[idx:idx + batch_size]
-                loss = agent.train_tsumo((train_state, train_action), train_y)
-                pbar.set_postfix({
-                    'loss':loss
-                })
+        tsumo_exp = ExperienceBuffer.load(train, 'tsumo')
+        ron_exp = ExperienceBuffer.load(train, 'ron')
+        agent.train_tsumo(tsumo_exp)
+        agent.train_ron(ron_exp)
     
     agent.save(args.save)

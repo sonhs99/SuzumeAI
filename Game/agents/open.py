@@ -2,6 +2,7 @@ from .base import Agent
 from .. import Action, NUM_OF_CARD
 from .. import encoders, nn
 import numpy as np
+import tensorflow as tf
 import random
 import h5py
 
@@ -11,7 +12,7 @@ class OpenAgent(Agent):
         self.network = network
 
         self.nn_tsumo = network.network(encoder.size(), NUM_OF_CARD + 1)
-        self.nn_ron = network.network(encoder.size(), 1)
+        self.nn_ron = network.network(encoder.size(), 2)
 
     def select_tsumo(self, state, draw):
         actions = state.legal_tsumo_action(draw)
@@ -23,7 +24,7 @@ class OpenAgent(Agent):
         selection = actions[result.argmax()]
         if self._tsumo_collector is not None:
             self._tsumo_collector.record_episode(
-                state_array, selection.Encode())
+                encoded_state, selection.Encode())
         return actions[result.argmax()]
 
     def select_ron(self, state, discard, turn):
@@ -31,23 +32,48 @@ class OpenAgent(Agent):
         if ron_able:
             state_array = state.to_array()
             encoded_state = np.array([self.encoder.encode(state_array, turn)] * 2)
-            action = np.array([[0], [1]])
+            action = np.array([[0, 1], [1, 0]])
             result = self.nn_tsumo.predict([encoded_state, action])
             if self._ron_collector is not None:
                 self._ron_collector.record_episode(
-                    state_array, result[1] > result[0])
+                    encoded_state, result[1] > result[0])
             if result[1] > result[0]:
                 selection = Action.Ron()
             else: selection = Action.Pass()
             return selection
         else: return Action.Pass()
 
-    def train_tsumo(self, X, y):
+    def train_tsumo(self, experience, lr=0.1, batch_size=128):
         self.nn_tsumo.compile(
-            optimizer='adam',
+            optimizer=tf.optimizers.SGD(learning_rate=lr),
             loss='mse'
         )
-        return self.nn_tsumo.train_on_batch(X, y)
+        n = experience.state.shape[0]
+        actions = np.zeros((n, NUM_OF_CARD))
+        y = np.zeros((n,))
+        for i in range(n):
+            actions[i][experience.action[i]] = 1
+            y[i] = experience.reward[i] / 50
+        return self.nn_tsumo.fit(
+            [experience.states, actions], y,
+            batch_size=batch_size,
+            epochs=1)
+
+    def train_ron(self, experience, lr=0.1, batch_size=128):
+        self.nn_ron.compile(
+            optimizer=tf.optimizers.SGD(learning_rate=lr),
+            loss='mse'
+        )
+        n = experience.state.shape[0]
+        actions = np.zeros((n, 1))
+        y = np.zeros((n,))
+        for i in range(n):
+            actions[i][experience.action[i]] = 1
+            y[i] = experience.reward[i] / 50
+        return self.nn_ron.fit(
+            [experience.states, actions], y,
+            batch_size=batch_size,
+            epochs=1)
 
     def save(self, file_name):
         tsumo_weights = self.nn_tsumo.get_weights()
