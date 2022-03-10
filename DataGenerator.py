@@ -1,5 +1,5 @@
 import Game
-from Game import agents
+from Game import agents, encoders
 from tqdm import tqdm
 import argparse
 import ray
@@ -10,7 +10,7 @@ import h5py
 def generate_data():
     tsumo_collector = [Game.ExperienceCollector() for _ in range(4)]
     ron_collector = [Game.ExperienceCollector() for _ in range(4)]
-    players = [agents.RandomAgent() for _ in range(4)]
+    players = [agents.RandomAgent(encoders.FivePlaneEncoder()) for _ in range(4)]
     for player, tsumo, ron in zip(players, tsumo_collector, ron_collector):
         player.set_collector(tsumo, ron)
     board = Game.Board(players,
