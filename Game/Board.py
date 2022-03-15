@@ -71,8 +71,10 @@ class State:
             State(turn, deck[Type.N_PLAYER*5], hand, discard),
             deck[Type.N_PLAYER*5 + 1:])
 
-    def apply_action(self, draw, tsumo, ron):
+    def set_draw(self, draw):
         self.draw = draw
+
+    def apply_action(self, tsumo, ron):
         if tsumo.isTsumo() or Action.Ron() in ron:
             return self
 
@@ -80,7 +82,7 @@ class State:
         hand = deepcopy(self.hand)
         discard = deepcopy(self.discard)
         discarded_card = tsumo.Encode()
-        hand[self.turn].change(draw, discarded_card)
+        hand[self.turn].change(self.draw, discarded_card)
         discard[self.turn].collect(discarded_card)
         return State(
             (self.turn + 1) % Type.N_PLAYER,
@@ -121,13 +123,13 @@ class State:
         state[self.draw] = 2
         for i in range(Type.N_PLAYER):
             _turn = (self.turn + i) % Type.N_PLAYER
-            state += (self.hand[_turn]._hand == 1).astype('int') * (i + 3)
-            state += (self.hand[_turn]._hand == 2).astype('int') * (i + 3 + Type.N_PLAYER)
+            for card, idx in enumerate(self.hand[_turn]._hand):
+                if idx == 1: state[card] = i * 2 + 3
+                elif idx == 2: state[card] = i * 2 + 4
         
         if discard is not None:
-            state[self.draw] = 3
+            state[self.draw] = 4
             state[discard] = 2
-
         return state
 
 class Board:
@@ -155,6 +157,7 @@ class Board:
         result = np.zeros(n_player, dtype='int')
         winner = []
         for draw in self.deck:
+            self.state.set_draw(draw)
             turn = self.state.getTurn()
             ron = [Action.Pass() for _ in range(n_player - 1)]
             tsumo = self.players[turn].select_tsumo(self.state, draw)
@@ -167,7 +170,7 @@ class Board:
                     if ron[idx - 1].isRon(): winner.append(ron_turn)
             else: winner.append(turn)
             if winner: break
-            self.state = self.state.apply_action(draw, tsumo, ron)
+            self.state = self.state.apply_action(tsumo, ron)
 
         for w in winner:
             if w == turn:

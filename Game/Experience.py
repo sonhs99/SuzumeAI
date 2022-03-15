@@ -60,9 +60,9 @@ class ExperienceBuffer:
     @staticmethod
     def load(h5file, group_name):
         return ExperienceBuffer(
-            state=h5file[group_name]['state'],
-            action=h5file[group_name]['action'],
-            reward=h5file[group_name]['reward']
+            state=h5file[group_name]['State'],
+            action=h5file[group_name]['Action'],
+            reward=h5file[group_name]['Reward']
         )
 
 def combine_experience(collectors):

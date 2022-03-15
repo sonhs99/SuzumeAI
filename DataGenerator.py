@@ -1,16 +1,14 @@
 import Game
 from Game import agents, encoders
 from tqdm import tqdm
-import argparse
-import ray
-import os
-import h5py
+import argparse, ray, os, h5py
 
 @ray.remote
-def generate_data():
+def generate_data(agent):
+    import tensorflow as tf
     tsumo_collector = [Game.ExperienceCollector() for _ in range(4)]
     ron_collector = [Game.ExperienceCollector() for _ in range(4)]
-    players = [agents.RandomAgent(encoders.FivePlaneEncoder()) for _ in range(4)]
+    players = [agent.dup() for _ in range(4)]
     for player, tsumo, ron in zip(players, tsumo_collector, ron_collector):
         player.set_collector(tsumo, ron)
     board = Game.Board(players,
@@ -26,11 +24,22 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Data Generator for SuzumeAI')
     parser.add_argument('iter', type=int, help='Iteration Count')
     parser.add_argument('file', help='File Name to Save Data')
+    parser.add_argument('--agent-file', help='File Name of Agent')
+    parser.add_argument('--temperature', type=float, default=0.0, help='Epsilon Value of e-greedy Policy')
     args = parser.parse_args()
 
-    ray.init(num_cpus=os.cpu_count())
+    if args.agent_file is None:
+        agent = agents.RandomAgent(encoders.FivePlaneEncoder())
+    else:
+        with h5py.File(args.agent_file, 'r') as agent_file:
+            agent_obj = agents.selector(agent_file.attrs['agent'])
+        agent = agent_obj.load(args.agent_file)
+        agent.set_temperature(args.temperature)
 
-    result_ids = [generate_data.remote() for i in range(args.iter)]
+    ray.init(num_cpus=os.cpu_count())
+    agent = ray.put(agent)
+
+    result_ids = [generate_data.remote(agent) for i in range(args.iter)]
     tsumo_collector, ron_collector = [], []
     with tqdm(total=args.iter) as pbar:
         while len(result_ids):

@@ -7,6 +7,9 @@ class RandomAgent(Agent):
         super().__init__()
         self._encode = encode
 
+    def set_temperature(self, temperature):
+        pass
+
     def select_tsumo(self, state, draw):
         actions = state.legal_tsumo_action(draw)
         if Action.Tsumo() in actions: selection = Action.Tsumo()
@@ -29,6 +32,9 @@ class RandomAgent(Agent):
         else:
             selection = Action.Pass()
         return selection
+
+    def dup(self):
+        return RandomAgent(self._encode)
 
     @staticmethod
     def name():

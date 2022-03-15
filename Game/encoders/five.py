@@ -21,7 +21,7 @@ class FivePlaneEncoder(Encoder):
                 else: onehot[index, card, 1] = 1
             elif s >= 3:
                 idx = s - 3
-                onehot[idx % Type.N_PLAYER, card, idx // Type.N_PLAYER] = 1
+                onehot[idx // 2, card, idx % 2] = 1
 
         onehot[index, :, 2].fill(1)
         

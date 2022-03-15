@@ -13,6 +13,9 @@ class Agent:
     def select_ron(self, state, discard, turn):
         raise NotImplementedError()
 
+    def dup(self):
+        raise NotImplementedError()
+
     @staticmethod
     def name():
         return 'Not Implemented'
