@@ -29,7 +29,7 @@ class SmallNetwork():
         output = tf.keras.layers.Dense(1, activation='tanh')(x)
         model = tf.keras.Model(inputs=[input_state, input_action], outputs=output)
         
-        model.summary()
+        # model.summary()
         return model
 
     def name(self):

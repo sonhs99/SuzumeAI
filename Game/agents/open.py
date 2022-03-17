@@ -26,7 +26,7 @@ class OpenAgent(Agent):
         if random.uniform(0, 1) > self.temperature:
             state_array = state.to_array()
             encoded_state = np.array([self.encoder.encode(state_array, 0)] * len(actions))
-            action = np.array([action.encode() for action in actions])
+            action = np.array([action.Encode() for action in actions])
             encoded_action = np.eye(NUM_OF_CARD + 1)[action]
             result = self.nn_tsumo.predict([encoded_state, encoded_action])
             selection = actions[result.argmax()]
@@ -45,7 +45,7 @@ class OpenAgent(Agent):
                 state_array = state.to_array()
                 encoded_state = np.array([self.encoder.encode(state_array, turn)] * 2)
                 action = np.array([[0, 1], [1, 0]])
-                result = self.nn_tsumo.predict([encoded_state, action])
+                result = self.nn_ron.predict([encoded_state, action])
                 if result[1] > result[0]:
                     selection = Action.Ron()
                 else: selection = Action.Pass()
