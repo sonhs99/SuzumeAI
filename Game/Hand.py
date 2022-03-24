@@ -20,7 +20,8 @@ class Hand:
         points = np.sum([
             condition(triple[0], triple[1]) for condition in Score.point_condition
         ], axis=0)
-        return (points[0] + points[1] if points[1] == 0 else points[2]) \
+        # print(points)
+        return (points[0] + (points[1] if points[1] != 0 else points[2])) \
             if points[0] != 0 else 0
 
     def change(self, draw, discard):

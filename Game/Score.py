@@ -14,7 +14,7 @@ card_index = [
 ]
 
 point_condition = [
-    lambda f, s: np.array([f.type + s.type, 0, 0]), # Body
+    lambda f, s: np.array([(f.type != 0 and s.type != 0)*(f.type + s.type), 0, 0]),  # Body
     lambda f, s: np.array([0, (f.red + s.red == 6) * 20, 0]), # Super Red
     lambda f, s: np.array([0, (f.green + s.green == 6) * 10, 0]), # All Green
     lambda f, s: np.array([0, (f.type + s.type == 4 and f.noble and s.noble) * 15, 0]), # All Noble

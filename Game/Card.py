@@ -10,7 +10,7 @@ GREEN = 10
 
 RED_SET = 3
 GREEN_SET = [1, 2, 3, 5, 7, 10]
-NOBLE_SET = [1, 8, 9, 10]
+NOBLE_SET = [0, 8, 9, 10]
 
 class CardTable:
     _table = None
