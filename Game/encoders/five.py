@@ -25,11 +25,11 @@ class FivePlaneEncoder(Encoder):
 
         onehot[index, :, 2].fill(1)
         
-        dora = table.get(dora).num
+        dora = table[dora].num
         for card in range(Type.NUM_OF_CARD):
-            if table.get(card).red:
+            if table[card].red:
                 onehot[:, card, 3].fill(1)
-            if table.get(card).num == dora:
+            if table[card].num == dora:
                 onehot[:, card, 4].fill(1)
 
         return onehot

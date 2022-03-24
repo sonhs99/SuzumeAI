@@ -13,10 +13,10 @@ def colored(text, color):
     return f'\x1b[{color}m{text}'
 
 def card_to_string(card):
-    color, num = NULL, table.get(card).num
+    color, num = NULL, table[card].num
 
-    if table.get(card).red: color = RED
-    elif table.get(card).green: color = GREEN
+    if table[card].red: color = RED
+    elif table[card].green: color = GREEN
 
     if num == Card.GREEN: num = 'G'
     elif num == Card.RED: num = 'R'

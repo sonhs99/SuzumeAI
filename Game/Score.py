@@ -2,12 +2,30 @@ from .Card import CardTable, RED, GREEN
 from collections import namedtuple
 import numpy as np
 
+__all__ = ['count_triple', 'split', 'point_condition']
+
 table = CardTable()
 info = namedtuple('TripleInfo', 'type red green dora noble')
 
+card_index = [
+    [[0, 1, 2], [3, 4, 5]],
+    [[0, 1, 5], [2, 3, 4]],
+    [[0, 2, 4], [1, 3, 5]]
+]
+
+point_condition = [
+    lambda f, s: np.array([f.type + s.type, 0, 0]), # Body
+    lambda f, s: np.array([0, (f.red + s.red == 6) * 20, 0]), # Super Red
+    lambda f, s: np.array([0, (f.green + s.green == 6) * 10, 0]), # All Green
+    lambda f, s: np.array([0, (f.type + s.type == 4 and f.noble and s.noble) * 15, 0]), # All Noble
+    lambda f, s: np.array([0, 0, f.dora + s.dora + f.red + s.red]), # Dora, Red
+    lambda f, s: np.array([0, 0, (not f.noble and not s.noble) * 1]), # All Simple
+    lambda f, s: np.array([0, 0, (f.noble and s.noble) * 2]) # Noble in each set
+]
+
 def count_triple(triple, dora):
-    card = [table.get(c) for c in triple]
-    dora = table.get(dora).num
+    card = [table[c] for c in triple]
+    dora = table[dora].num
     type = 0
     if card[0].num + 1 == card[1].num and \
             card[1].num + 1 == card[2].num:
@@ -32,16 +50,15 @@ def count_triple(triple, dora):
     return info(type, red, green, dora_count, noble)
 
 def split(hand):
-    delta = np.zeros(6)
-    index = [0, 1, 2, 3, 4, 5]
-    for idx in range(1, 6):
-        delta[idx] = table.get(hand[idx]).num - table.get(hand[idx - 1]).num
-    for i in range(3, 6):
-        if (delta[index[:3]] >= 2).any():
-            break # Not Ready
-        elif delta[index[:3]].sum() == 2 or delta[index[:3]].sum() == 0:
-            break # Body Recognized
-        else:  # Possibility of Existance of Body
-            swap_idx = 1 if delta[index[1]] == 0 else 2
-            index[swap_idx], index[i] = index[i], index[swap_idx]
-    return sorted(index[:3]), sorted(index[3:])
+    card = [table[c].num for c in hand]
+    for triple in card_index:
+        # Three of Kind
+        if card[triple[0][0]] == card[triple[0][1]] and \
+            card[triple[0][1]] == card[triple[0][2]]:
+            return triple
+        # Sequence
+        if card[triple[0][0]] + 1 == card[triple[0][1]] and \
+            card[triple[0][1]] + 1 == card[triple[0][2]]:
+            if card[triple[0][2]] != RED and card[triple[0][2]] != GREEN:
+                return triple
+    return card_index[0] # Not Recognize

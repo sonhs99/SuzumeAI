@@ -92,7 +92,7 @@ class State:
 
     def legal_tsumo_action(self, card):
         actions = []
-        for c in self.hand[self.turn].toArray():
+        for c in self.hand[self.turn].to_array():
             actions.append(Action.Discard(c))
         actions.append(Action.Discard(card))
         if self.hand[self.turn].point(card, self.dora) >= 5:

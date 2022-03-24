@@ -112,21 +112,20 @@ class OpenAgent(Agent):
             file.attrs['agent'] = self.name()
 
     @staticmethod
-    def load(filename):
-        with h5py.File(filename, 'r') as file:
-            encoder = encoders.selector(file.attrs['encoder'])
-            network = nn.selector(file.attrs['network'])
-            agent = OpenAgent(encoder, network)
+    def load(file):
+        encoder = encoders.selector(file.attrs['encoder'])
+        network = nn.selector(file.attrs['network'])
+        agent = OpenAgent(encoder, network)
 
-            tsumo_layers = [
-                file['model/tsumo'][str(idx)] for idx in range(file['model/tsumo'].attrs['len'])
-            ]
-            agent.nn_tsumo.set_weights(tsumo_layers)
+        tsumo_layers = [
+            file['model/tsumo'][str(idx)] for idx in range(file['model/tsumo'].attrs['len'])
+        ]
+        agent.nn_tsumo.set_weights(tsumo_layers)
 
-            ron_layers = [
-                file['model/ron'][str(idx)] for idx in range(file['model/ron'].attrs['len'])
-            ]
-            agent.nn_ron.set_weights(ron_layers)
+        ron_layers = [
+            file['model/ron'][str(idx)] for idx in range(file['model/ron'].attrs['len'])
+        ]
+        agent.nn_ron.set_weights(ron_layers)
         return agent
 
     def dup(self):

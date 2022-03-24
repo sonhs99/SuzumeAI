@@ -12,7 +12,7 @@ class Simulator():
         else:
             with h5py.File(agent_file, 'r') as file:
                 agent_obj = agents.selector(file.attrs['agent'])
-            self.agent = agent_obj.load(agent_file)
+                self.agent = agent_obj.load(file)
             self.agent.set_temperature(temperature)
 
     def simulate_game(self, iteration):

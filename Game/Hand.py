@@ -12,45 +12,33 @@ class Hand:
 
     def point(self, draw, dora):
         self._hand[draw] = True
-        hand = self.toArray()
+        hand = self.to_array()
         self._hand[draw] = False
         index = Score.split(hand)
         triple = Score.count_triple(hand[index[0]], dora), \
             Score.count_triple(hand[index[1]], dora)
-        if triple[0].type * triple[1].type == 0: return 0
-        point = triple[0].type + triple[1].type
-        
-        if triple[0].red + triple[1].red == 6:
-            return point + 20
-        if triple[0].green + triple[1].green == 6:
-            return point + 10
-        if triple[0].noble and triple[1].noble:
-            if triple[0].type == 2 and triple[1].type == 2:
-                return point + 15
-            else: point += 2
-        elif not (triple[0].noble or triple[1].noble):
-            point += 1
-        
-        point += triple[0].red + triple[1].red
-        point += triple[0].dora + triple[1].dora
-        return point
+        points = np.sum([
+            condition(triple[0], triple[1]) for condition in Score.point_condition
+        ], axis=0)
+        return (points[0] + points[1] if points[1] == 0 else points[2]) \
+            if points[0] != 0 else 0
 
     def change(self, draw, discard):
         self._hand[draw] = 1
         self._hand[discard] = 2
 
-    def toArray(self):
+    def to_array(self):
         return np.arange(44)[self._hand == 1]
 
     def isDiscarded(self, card):
-        cards = table.getid(table.get(card).num)
+        cards = table.getid(table[card].num)
         for c in cards:
             if self._hand[c] == 2:
                 True
         return False
 
     def __str__(self):
-        return f'Hand({self.toArray()})'
+        return f'Hand({self.to_array()})'
 
 class DiscardZone:
     def __init__(self):
@@ -59,7 +47,7 @@ class DiscardZone:
     def collect(self, card):
         self._discard.append(card)
 
-    def toArray(self):
+    def to_array(self):
         return self._discard
 
     def __str__(self):
