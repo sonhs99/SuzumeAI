@@ -25,12 +25,15 @@ class MCTSNode:
             discard = action.encode()
             for idx in range(1, N_PLAYER):
                 ron_turn = (turn + idx + 1) % N_PLAYER
-                ron[ron_turn] = self.players[ron_turn].select_ron(self.state, discard, idx)
+                if self.state.legal_ron_acion(idx, discard): 
+                    ron[ron_turn] = Action.Ron()
         new_state = self.state.apply_action(self, action, ron)
         draw = np.random.choice(self.wall, 1)
         new_state.set_draw(draw)
         new_node = MCTSNode(new_state, action, self)
-        self.child[draw] = new_node
+        if draw in self.child:
+            self.child[draw].append(new_node)
+        else: self.child[draw] = [new_node]
         return new_node        
 
     def apply_result(self, value):
