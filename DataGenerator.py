@@ -8,7 +8,9 @@ import argparse, ray, os, h5py
 class Simulator():
     def __init__(self, agent_file, temperature):
         if agent_file is None:
-            self.agent = agents.RandomAgent(encoders.FivePlaneEncoder())
+            if temperature == 0:
+                self.agent = agents.RandomAgent(encoders.FivePlaneEncoder())
+            else: self.agent = agents.MCTSAgent(encoders.FivePlaneEncoder(), 128)
         else:
             with h5py.File(agent_file, 'r') as file:
                 agent_obj = agents.selector(file.attrs['agent'])

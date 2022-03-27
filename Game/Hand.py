@@ -11,9 +11,10 @@ class Hand:
             self._hand[card] = 1
 
     def point(self, draw, dora):
-        self._hand[draw] = True
+        assert not self._hand[draw] == 1
+        self._hand[draw] = 1
         hand = self.to_array()
-        self._hand[draw] = False
+        self._hand[draw] = 0
         index = Score.split(hand)
         triple = Score.count_triple(hand[index[0]], dora), \
             Score.count_triple(hand[index[1]], dora)

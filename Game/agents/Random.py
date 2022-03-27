@@ -18,7 +18,7 @@ class RandomAgent(Agent):
         if self._tsumo_collector is not None:
             encoded_state = self._encode.encode(state.to_array(), 0)
             self._tsumo_collector.record_episode(
-                encoded_state, selection.Encode())
+                encoded_state, selection.encode())
         return selection
 
     def select_ron(self, state, discard, idx):
