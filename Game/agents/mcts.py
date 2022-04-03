@@ -94,20 +94,20 @@ class MCTSAgent(Agent):
                     best_pct = child_pct
                     best_action = child.action
 
-        if self._tsumo_collector is not None:
-            encoded_state = self.encoder.encode(state.to_array(), 0)
-            self._tsumo_collector.record_episode(
-                encoded_state, best_action.encode())
+        # if self._tsumo_collector is not None:
+        #     encoded_state = self.encoder.encode(state.to_array(), 0)
+        #     self._tsumo_collector.record_episode(
+        #         encoded_state, best_action.encode())
         return best_action
 
     def select_ron(self, state, discard, idx):
         ron_able = state.legal_ron_action(idx, discard)
         if ron_able:
             selection = Action.Ron()
-            if self._ron_collector is not None:
-                encoded_state = self.encoder.encode(state.to_array(discard), idx)
-                self._ron_collector.record_episode(
-                    encoded_state, ron_able)
+            # if self._ron_collector is not None:
+            #     encoded_state = self.encoder.encode(state.to_array(discard), idx)
+            #     self._ron_collector.record_episode(
+            #         encoded_state, ron_able)
         else:
             selection = Action.Pass()
         return selection

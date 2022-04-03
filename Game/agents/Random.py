@@ -15,20 +15,20 @@ class RandomAgent(Agent):
         if Action.Tsumo() in actions: selection = Action.Tsumo()
         else:selection = random.choice(actions)
 
-        if self._tsumo_collector is not None:
-            encoded_state = self._encode.encode(state.to_array(), 0)
-            self._tsumo_collector.record_episode(
-                encoded_state, selection.encode())
+        # if self._tsumo_collector is not None:
+        #     encoded_state = self._encode.encode(state.to_array(), 0)
+        #     self._tsumo_collector.record_episode(
+        #         encoded_state, selection.encode())
         return selection
 
     def select_ron(self, state, discard, idx):
         ron_able = state.legal_ron_action(idx, discard)
         if ron_able:
             selection = Action.Ron()
-            if self._ron_collector is not None:
-                encoded_state = self._encode.encode(state.to_array(discard), idx)
-                self._ron_collector.record_episode(
-                    encoded_state, ron_able)
+            # if self._ron_collector is not None:
+            #     encoded_state = self._encode.encode(state.to_array(discard), idx)
+            #     self._ron_collector.record_episode(
+            #         encoded_state, ron_able)
         else:
             selection = Action.Pass()
         return selection
