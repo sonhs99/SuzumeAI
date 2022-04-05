@@ -54,7 +54,7 @@ class Logger:
 
     def construct_game(self):
         games = []
-        start = 0, 0
+        start = 0
         for idx, op in enumerate(self.log):
             if isinstance(op, Uma):
                 games.append(self.log[start:idx + 1])
@@ -74,13 +74,16 @@ class Logger:
             parsed_log = [
                 split_op(
                     line.replace('\n', '').replace('  ', ' ')
-                    ) for line in file.readlines() if line]
+                ) for line in file.readlines() if line]
         log = Logger(int(parsed_log[0][1]))
         idx = 1
         while idx < len(parsed_log) - 1:
             if parsed_log[idx][0] == 'hand':
                 log.apply_init(
-                    [np.fromstring(parsed_log[i][1]) for i in range(idx, idx+log.n_player)],
+                    [
+                        np.fromstring(parsed_log[i][1], dtype=int, sep=' ')
+                        for i in range(idx, idx+log.n_player)
+                    ],
                     int(parsed_log[idx+log.n_player][1]),
                     start_player=int(parsed_log[idx+log.n_player+1][1])
                 )
@@ -89,11 +92,12 @@ class Logger:
                 log.apply_turn(
                     int(parsed_log[idx][1]),
                     int(parsed_log[idx][2]),
-                    np.fromstring(parsed_log[idx][3]))
+                    np.fromstring(parsed_log[idx][3], dtype=int, sep=' '))
             elif parsed_log[idx][0] == 'res':
-                log.apply_result(np.fromstring(parsed_log[idx][1]))
+                log.apply_result(np.fromstring(
+                    parsed_log[idx][1], dtype=int, sep=' '))
             elif parsed_log[idx][0] == 'uma':
-                log.apply_uma(np.fromstring(parsed_log[idx][1]))
+                log.apply_uma(np.fromstring(parsed_log[idx][1], dtype=int, sep=' '))
             idx += 1
         return log
 
@@ -105,8 +109,10 @@ def split_op(line):
             op.append(line[start:idx])
             start = idx+1
         elif char == '[':
-            op.append(line[start:-1])
+            op.append(line[start+1:-1])
+            start = len(line)
             break
+    if line[start:]: op.append(line[start:])
     return op
 
 def combine_log(logs, n_player):
