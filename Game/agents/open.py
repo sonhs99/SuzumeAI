@@ -1,17 +1,16 @@
-from tkinter.filedialog import Open
 from .base import Agent
-from .. import Action, NUM_OF_CARD
+from .. import Action, Type
 from .. import encoders, nn
 import numpy as np
 import tensorflow as tf
-import random, h5py, copy
+import random, h5py
 
 class OpenAgent(Agent):
     def __init__(self, encoder, network=None):
         self.encoder = encoder
         self.network = network
 
-        self.nn_tsumo = network.network(encoder.size(), NUM_OF_CARD + 1) \
+        self.nn_tsumo = network.network(encoder.size(), Type.NUM_OF_CARD + 1) \
             if network is not None else None
         self.nn_ron = network.network(encoder.size(), 2) \
             if network is not None else None
@@ -24,18 +23,20 @@ class OpenAgent(Agent):
     def select_tsumo(self, state, draw):
         actions = state.legal_tsumo_action(draw)
         if random.uniform(0, 1) > self.temperature:
+            mask = np.zeros(Type.NUM_OF_CARD + 1)
+            for a in actions: mask[a.encode()] = 1
             state_array = state.to_array()
-            encoded_state = np.array([self.encoder.encode(state_array, 0)] * len(actions))
-            action = np.array([action.encode() for action in actions])
-            encoded_action = np.eye(NUM_OF_CARD + 1)[action]
-            result = self.nn_tsumo.predict([encoded_state, encoded_action])
-            selection = actions[result.argmax()]
+            encoded_state = self.encoder.encode(state_array, 0)
+            policy, value = self.nn_tsumo.predict(encoded_state[np.newaxis, :])
+            selection = Action((policy[0]*mask).argmax())
+            estimate = value[0][0]
         else:
             selection = random.choice(actions)
+            estimate = 0
             
         if self._tsumo_collector is not None:
             self._tsumo_collector.record_episode(
-                encoded_state[0], selection.encode())
+                encoded_state, selection.encode(), estimate)
         return selection
 
     def select_ron(self, state, discard, turn):
@@ -44,16 +45,18 @@ class OpenAgent(Agent):
             state_array = state.to_array()
             encoded_state = np.array([self.encoder.encode(state_array, turn)] * 2)
             if random.uniform(0, 1) > self.temperature:
-                action = np.array([[0, 1], [1, 0]])
-                result = self.nn_ron.predict([encoded_state, action])
-                if result[1] > result[0]:
+                policy, value = self.nn_ron.predict(encoded_state[np.newaxis, :])
+                if policy[0][0] > policy[0][1]:
                     selection = Action.Ron()
                 else: selection = Action.Pass()
-            else: selection = random.choice([Action.ron(), Action.Pass()])
+                estimate = value[0][0]
+            else: 
+                selection = random.choice([Action.ron(), Action.Pass()])
+                estimate = 0
 
             if self._ron_collector is not None:
                 self._ron_collector.record_episode(
-                    encoded_state[0], selection.isRon())
+                    encoded_state[0], selection.isRon(), estimate)
 
         else: selection = Action.Pass()
         return selection
@@ -61,32 +64,40 @@ class OpenAgent(Agent):
     def train_tsumo(self, experience, lr=0.1, batch_size=128):
         self.nn_tsumo.compile(
             optimizer=tf.optimizers.SGD(learning_rate=lr),
-            loss='mse'
+            loss=['categorical_crossentropy', 'mse'],
+            loss_weight=[1, 0.5]
         )
+
         n = experience.state.shape[0]
-        actions = np.zeros((n, NUM_OF_CARD + 1))
-        y = np.zeros((n,))
+        policy_target = np.zeros((n, Type.NUM_OF_TYPE))
+        value_target = np.zeros((n,))
         for i in range(n):
-            actions[i][experience.action[i]] = 1
-            y[i] = experience.reward[i] / 50
+            policy_target[i, experience.action[i]] = experience.advantage[i]
+            value_target[i] = experience.reward[i]
+
         return self.nn_tsumo.fit(
-            [experience.state, actions], y,
+            experience.state,
+            [policy_target, value_target],
             batch_size=batch_size,
             epochs=1, shuffle=False)
 
     def train_ron(self, experience, lr=0.1, batch_size=128):
         self.nn_ron.compile(
             optimizer=tf.optimizers.SGD(learning_rate=lr),
-            loss='mse'
+            loss=['categorical_crossentropy', 'mse'],
+            loss_weight=[1, 0.5]
         )
+        
         n = experience.state.shape[0]
-        actions = np.zeros((n, 2))
-        y = np.zeros((n,))
+        policy_target = np.zeros((n, Type.NUM_OF_TYPE))
+        value_target = np.zeros((n,))
         for i in range(n):
-            actions[i][experience.action[i]] = 1
-            y[i] = experience.reward[i] / 50
+            policy_target[i, experience.action[i]] = experience.advantage[i]
+            value_target[i] = experience.reward[i]
+
         return self.nn_ron.fit(
-            [experience.state, actions], y,
+            experience.state,
+            [policy_target, value_target],
             batch_size=batch_size,
             epochs=1, shuffle=False)
 

@@ -57,6 +57,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Data Preprocessing for SuzumeAI')
     parser.add_argument('src', help='Source Experience Data to Convert')
     parser.add_argument('dest', help='Destination of Converted Train/Test Data')
+    parser.add_argument('--network', help='Network file')
     parser.add_argument('--n-workers', type=int,
                         default=os.cpu_count(), help='Number of Workers')
     args = parser.parse_args()

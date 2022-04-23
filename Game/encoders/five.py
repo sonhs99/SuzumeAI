@@ -12,7 +12,7 @@ class FivePlaneEncoder(Encoder):
     ## 3: Red
     ## 4: Dora
     def encode(self, state, index):
-        onehot = np.zeros((Type.N_PLAYER, Type.NUM_OF_CARD, 5))
+        onehot = np.zeros(self.size())
         dora = 0
         for card, s in enumerate(state):
             if s == 1: dora = card

@@ -128,12 +128,14 @@ class State:
         return state
 
 class Board:
-    def __init__(self, players, logger=None, start_turn=0):
+    def __init__(self, players, logger=None, tsumo_collectors=None, ron_collectors=None, start_turn=0):
         deck = list(range(Type.NUM_OF_CARD))
         random.shuffle(deck)
         self.players = players
         self.state, self.deck = State.init(deck, start_turn)
         self.logger = logger
+        self.tsumo_collectors = tsumo_collectors
+        self.ron_collectors = ron_collectors
         self.start_turn = start_turn
         self.point = np.zeros(len(self.players), dtype='int')
 
@@ -199,6 +201,12 @@ class Board:
         self.point += result
         if self.logger is not None:
             self.logger.apply_result(result)
+        if self.tsumo_collectors is not None:
+            for collector in self.tsumo_collectors:
+                collector.complete_sub_episode(result)
+        if self.ron_collectors is not None:
+            for collector in self.ron_collectors:
+                collector.complete_sub_episode(result)
 
     def rank(self):
         ranking = np.array(self.point).argsort()
@@ -207,3 +215,9 @@ class Board:
         result[-1] = 10
         if self.logger is not None:
             self.logger.apply_uma(result[ranking])
+        if self.tsumo_collectors is not None:
+            for collector, r in zip(self.tsumo_collectors, result[ranking]):
+                collector.complete_episode(r)
+        if self.ron_collectors is not None:
+            for collector, r in zip(self.ron_collectors, result[ranking]):
+                collector.complete_episode(r)
